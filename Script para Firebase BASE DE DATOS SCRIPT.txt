@@ -1,0 +1,95 @@
+Script para Firebase 
+// Importar Firebase y Firestore
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, setDoc, collection } from 'firebase/firestore';
+
+// Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_STORAGE_BUCKET",
+  messagingSenderId: "TU_MESSAGING_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Función para agregar un usuario
+async function agregarUsuario(nombre, correo, contrasena) {
+  const fechaRegistro = new Date();
+  const usuarioRef = doc(collection(db, "Usuarios"));
+  await setDoc(usuarioRef, {
+    id_usuario: usuarioRef.id,
+    nombre: nombre,
+    correo: correo,
+    contrasena: contrasena, // Asegúrate de cifrar la contraseña en producción
+    fecha_registro: fechaRegistro
+  });
+  console.log("Usuario agregado:", usuarioRef.id);
+}
+
+// Función para agregar una tarea
+async function agregarTarea(idUsuario, titulo, descripcion, fechaVencimiento) {
+  const fechaCreacion = new Date();
+  const tareaRef = doc(collection(db, "Tareas"));
+  await setDoc(tareaRef, {
+    id_tarea: tareaRef.id,
+    id_usuario: idUsuario,
+    titulo: titulo,
+    descripcion: descripcion,
+    fecha_vencimiento: fechaVencimiento,
+    estado: "pendiente", // Estado inicial
+    fecha_creacion: fechaCreacion
+  });
+  console.log("Tarea agregada:", tareaRef.id);
+}
+
+// Función para agregar una categoría
+async function agregarCategoria(nombreCategoria) {
+  const categoriaRef = doc(collection(db, "Categorias"));
+  await setDoc(categoriaRef, {
+    id_categoria: categoriaRef.id,
+    nombre_categoria: nombreCategoria
+  });
+  console.log("Categoría agregada:", categoriaRef.id);
+}
+
+// Función para agregar una tarea a una categoría (relación)
+async function agregarTareaCategoria(idTarea, idCategoria) {
+  const tareaCategoriaRef = doc(collection(db, "Tareas_Categorias"));
+  await setDoc(tareaCategoriaRef, {
+    id_tarea: idTarea,
+    id_categoria: idCategoria
+  });
+  console.log("Relación tarea-categoría agregada:", tareaCategoriaRef.id);
+}
+
+// Función para agregar un recordatorio
+async function agregarRecordatorio(idTarea, fechaRecordatorio, mensaje) {
+  const recordatorioRef = doc(collection(db, "Recordatorios"));
+  await setDoc(recordatorioRef, {
+    id_recordatorio: recordatorioRef.id,
+    id_tarea: idTarea,
+    fecha_recordatorio: fechaRecordatorio,
+    mensaje: mensaje
+  });
+  console.log("Recordatorio agregado:", recordatorioRef.id);
+}
+
+// Ejemplo de uso
+(async () => {
+  await agregarUsuario("Diego Bravo", "diego@example.com", "mi_contrasena");
+  const idUsuario = "ID_DEL_USUARIO"; // Cambia esto por el ID real del usuario
+
+  await agregarTarea(idUsuario, "Completar proyecto", "Finalizar el proyecto de gestión de tareas", new Date("2024-11-01"));
+  const idTarea = "ID_DEL_TAREA"; // Cambia esto por el ID real de la tarea
+
+  await agregarCategoria("Trabajo");
+  const idCategoria = "ID_DE_LA_CATEGORIA"; // Cambia esto por el ID real de la categoría
+
+  await agregarTareaCategoria(idTarea, idCategoria);
+  await agregarRecordatorio(idTarea, new Date("2024-10-30"), "Recuerda completar el proyecto a tiempo");
+})();
